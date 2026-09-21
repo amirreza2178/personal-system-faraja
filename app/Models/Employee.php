@@ -2,6 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Department;
+use App\Models\Attendance;
+use App\Models\LeaveRequest;
+use App\Models\LeaveBalance;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,7 +16,7 @@ class Employee extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'departmant_id',
+
         'first_name',
         'last_name',
         'rank',
@@ -31,16 +36,57 @@ class Employee extends Model
         'position',
         'service_branch',
         'service_summary',
+        'department_id',
+        'education_level',
+        'status',
+
+
     ];
 
     protected $casts = [
+
         'birth_date' => 'date',
         'promotion_date' => 'date',
+
     ];
 
+    /*
+    |--------------------------------------------------------------------------
+    | Department Relationship
+    |--------------------------------------------------------------------------
+    */
+
     public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+    /**
+ * Employee attendances.
+ */
+public function attendances()
 {
-    return $this->belongsTo(Department::class);
+    return $this->hasMany(
+        Attendance::class
+    );
+}
+
+
+public function leaveRequests()
+{
+    return $this->hasMany(LeaveRequest::class);
+}
+
+/**
+ * سهمیه‌های مرخصی پرسنل
+ */
+/**
+ * موجودی مرخصی پرسنل
+ */
+public function leaveBalances(): HasMany
+{
+    return $this->hasMany(
+        LeaveBalance::class
+    );
 }
 
 }
