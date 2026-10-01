@@ -516,80 +516,121 @@
      SECTION - LEAVE BALANCE
 ========================================================= --}}
 
-<div class="card section-card">
+
+
+
+<div class="card employee-leave-card">
 
     <div class="card-header">
 
-        <div class="section-title-wrapper">
+        <div class="card-heading">
 
-            <div class="section-icon">
-                🏖️
-            </div>
+            <h2>
+                مدیریت مرخصی پرسنل
+            </h2>
 
-            <div class="card-heading">
-
-                <h2>
-                    وضعیت مرخصی
-                </h2>
-
-                <p>
-                    وضعیت مرخصی‌های سال {{ $year }}
-                </p>
-
-            </div>
+            <p>
+                وضعیت سهمیه و مصرف مرخصی در سال {{ $year }}
+            </p>
 
         </div>
 
-    </div>
+        <a
+            href="{{ route('employees.leave-balance', $employee) }}"
+            class="btn btn-gold"
+        >
+            ⚙ مدیریت سهمیه
+        </a>
 
+    </div>
 
     <div class="card-body">
 
-        <div class="stats">
+        <div class="leave-balance-grid">
 
-            @foreach($leaveBalance as $item)
+            @php
+                $leaveTypes = [
+                    'entitlement' => [
+                        'title' => 'استحقاقی',
+                        'icon' => '📘',
+                    ],
+                    'encouragement' => [
+                        'title' => 'تشویقی',
+                        'icon' => '🎁',
+                    ],
+                    'sick' => [
+                        'title' => 'استعلاجی',
+                        'icon' => '🏥',
+                    ],
+                    'continuity' => [
+                        'title' => 'مداومت',
+                        'icon' => '🔄',
+                    ],
+                ];
+            @endphp
 
-                <div class="stat-card">
+            @foreach($leaveTypes as $type => $item)
 
-                    <div class="stat-icon">
-                        🗓️
-                    </div>
+                @php
+                    $balance = $leaveBalances->get($type);
 
-                    <div>
+                    $allowance = $balance?->allowance ?? 0;
+                    $used = $balance?->used_days ?? 0;
+                    $remaining = $balance?->remaining_days ?? 0;
+                @endphp
 
-                        <div class="stat-label">
+                <div class="leave-balance-item">
 
-                            
-                            {{ $item['leave_type'] }}
-                            
+                    <div class="leave-balance-top">
 
+                        <div class="leave-balance-title">
 
-                        </div>
-
-                        <div class="stat-value">
-
-                            {{ $item['remaining'] }}
-
-                            <span style="font-size:10px;">
-                                روز باقی‌مانده
+                            <span class="leave-balance-icon">
+                                {{ $item['icon'] }}
                             </span>
 
+                            <strong>
+                                {{ $item['title'] }}
+                            </strong>
+
                         </div>
 
-                        <div style="
-                            margin-top:5px;
-                            font-size:9px;
-                            color:var(--gray-500);
-                        ">
+                        <span class="leave-year">
+                            {{ $year }}
+                        </span>
 
-                            سهمیه:
-                            {{ $item['allowance'] }}
+                    </div>
 
-                            |
+                    <div class="leave-balance-numbers">
 
-                            مصرف:
-                            {{ $item['used'] }}
+                        <div>
+                            <span>
+                                سهمیه
+                            </span>
 
+                            <strong>
+                                {{ $allowance }}
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>
+                                استفاده‌شده
+                            </span>
+
+                            <strong class="used-number">
+                                {{ $used }}
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>
+                                باقی‌مانده
+                            </span>
+
+                            <strong class="remaining-number">
+                                {{ $remaining }}
+                            </strong>
                         </div>
 
                     </div>
@@ -597,24 +638,6 @@
                 </div>
 
             @endforeach
-
-        </div>
-
-
-        <div style="
-            margin-top:20px;
-            padding:15px;
-            border-radius:12px;
-            background:var(--gray-50);
-        ">
-
-            <strong>
-                مجموع مرخصی استفاده‌شده:
-            </strong>
-
-            {{ $totalUsedLeave }}
-
-            روز
 
         </div>
 
@@ -1428,5 +1451,120 @@
     </div>
 
 </div>
+
+@push('styles')
+
+<style>
+
+    .leave-balance-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+    }
+
+    .leave-balance-item {
+        padding: 18px;
+        border: 1px solid var(--gray-200);
+        border-radius: 14px;
+        background: var(--gray-50);
+        transition: var(--transition);
+    }
+
+    .leave-balance-item:hover {
+        background: #fff;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .leave-balance-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .leave-balance-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+    }
+
+    .leave-balance-title strong {
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .leave-balance-icon {
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 11px;
+        background: var(--gold-soft);
+        font-size: 17px;
+    }
+
+    .leave-year {
+        padding: 5px 8px;
+        border-radius: 7px;
+        background: #fff;
+        color: var(--gray-500);
+        font-size: 8px;
+        font-weight: 700;
+    }
+
+    .leave-balance-numbers {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .leave-balance-numbers div {
+        padding: 9px 6px;
+        text-align: center;
+        background: #fff;
+        border-radius: 9px;
+        border: 1px solid var(--gray-200);
+    }
+
+    .leave-balance-numbers span {
+        display: block;
+        color: var(--gray-500);
+        font-size: 7px;
+        margin-bottom: 4px;
+    }
+
+    .leave-balance-numbers strong {
+        display: block;
+        font-size: 15px;
+        font-weight: 900;
+    }
+
+    .used-number {
+        color: var(--orange);
+    }
+
+    .remaining-number {
+        color: var(--green);
+    }
+
+    @media (max-width: 1100px) {
+        .leave-balance-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 600px) {
+        .leave-balance-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+</style>
+
+@endpush
+
 
 @endsection

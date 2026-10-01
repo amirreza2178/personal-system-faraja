@@ -151,12 +151,11 @@ class LeaveRequestService
         | فقط درخواست Pending قابل تأیید است
         |--------------------------------------------------------------------------
         */
-        if ($leaveRequest->status !== 'pending') {
-            throw ValidationException::withMessages([
-                'status' =>
-                    'فقط درخواست‌های در انتظار بررسی قابل تأیید هستند.',
-            ]);
-        }
+       if ($this->statusValue($leaveRequest->status) !== 'pending') {
+    throw ValidationException::withMessages([
+        'status' => 'فقط درخواست‌های در انتظار بررسی قابل تأیید هستند.',
+    ]);
+}
 
         /*
         |--------------------------------------------------------------------------
@@ -245,12 +244,11 @@ class LeaveRequestService
         ) {
             $leaveRequest->refresh();
 
-            if ($leaveRequest->status !== 'pending') {
-                throw ValidationException::withMessages([
-                    'status' =>
-                        'فقط درخواست‌های در انتظار بررسی قابل رد هستند.',
-                ]);
-            }
+           if ($this->statusValue($leaveRequest->status) !== 'pending') {
+    throw ValidationException::withMessages([
+        'status' => 'فقط درخواست‌های در انتظار بررسی قابل رد هستند.',
+    ]);
+}
 
             $leaveRequest->update([
                 'status' => 'rejected',
@@ -378,4 +376,13 @@ class LeaveRequestService
             ? (string) $leaveType->value
             : (string) $leaveType;
     }
+
+    private function statusValue(mixed $status): string
+{
+    return $status instanceof \BackedEnum
+        ? (string) $status->value
+        : (string) $status;
+}
+
+
 }

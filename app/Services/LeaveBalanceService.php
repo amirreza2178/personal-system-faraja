@@ -12,7 +12,9 @@ class LeaveBalanceService
     private const DEFAULT_ALLOWANCE = 30;
 
     /**
-     * ایجاد خودکار سهمیه‌های سال برای یک پرسنل.
+     * ایجاد سهمیه‌های پیش‌فرض پرسنل برای یک سال.
+     *
+     * هر پرسنل برای هر نوع مرخصی یک سهمیه مستقل دارد.
      */
     public function ensureForEmployee(
         Employee $employee,
@@ -35,8 +37,7 @@ class LeaveBalanceService
     }
 
     /**
-     * اطمینان از وجود سهمیه برای سال موردنظر
-     * و برگرداندن آنها.
+     * دریافت سهمیه‌های یک پرسنل در یک سال.
      */
     public function getForEmployee(
         Employee $employee,
@@ -44,6 +45,8 @@ class LeaveBalanceService
     ) {
         $year ??= $this->currentJalaliYear();
 
+        // اگر سهمیه‌های سال هنوز ساخته نشده باشند،
+        // اینجا به صورت خودکار ساخته می‌شوند.
         $this->ensureForEmployee($employee, $year);
 
         return LeaveBalance::query()
@@ -58,7 +61,7 @@ class LeaveBalanceService
     }
 
     /**
-     * سال شمسی فعلی.
+     * سال شمسی جاری.
      */
     public function currentJalaliYear(): int
     {

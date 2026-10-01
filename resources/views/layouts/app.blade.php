@@ -24,55 +24,110 @@
 
     <style>
 
-.app-footer {
-    margin-top: 30px;
-    padding: 18px 24px;
-    background: #ffffff;
-    border-top: 1px solid #e5e7eb;
-}
+        .app-footer {
+            margin: 0 28px 28px;
+            padding: 20px 24px;
+            background: #ffffff;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
 
-.footer-inner {
-    max-width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-}
+        .footer-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
 
-.footer-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-.footer-brand strong {
-    color: #0f2742;
-    font-size: 13px;
-    font-weight: 900;
-}
+        .footer-logo {
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, var(--gold), var(--gold-light));
+            color: var(--navy-950);
+            font-size: 13px;
+            font-weight: 900;
+            box-shadow: 0 7px 18px rgba(200, 164, 93, .18);
+        }
 
-.footer-brand span {
-    color: #94a3b8;
-    font-size: 11px;
-}
+        .footer-brand-text {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
 
-.footer-copy {
-    color: #94a3b8;
-    font-size: 11px;
-}
+        .footer-brand strong {
+            color: var(--navy-800);
+            font-size: 11px;
+            font-weight: 900;
+        }
 
-@media (max-width: 700px) {
+        .footer-brand span {
+            color: var(--gray-400);
+            font-size: 8px;
+        }
 
-    .footer-inner {
-        flex-direction: column;
-        text-align: center;
-    }
+        .footer-contact {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 14px;
+            border-radius: 12px;
+            background: var(--gold-soft);
+            border: 1px solid rgba(200, 164, 93, .28);
+            color: var(--navy-800);
+            font-size: 12px;
+            font-weight: 900;
+        }
 
-    .footer-brand {
-        flex-direction: column;
-        gap: 5px;
-    }
-}
+        .footer-contact-label {
+            color: var(--gray-600);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .footer-contact a {
+            color: var(--navy-800);
+            font-size: 13px;
+            font-weight: 950;
+            transition: var(--transition);
+        }
+
+        .footer-contact a:hover {
+            color: #a17f36;
+        }
+
+        .footer-copy {
+            color: var(--gray-400);
+            font-size: 9px;
+        }
+
+        @media (max-width: 700px) {
+            .app-footer {
+                margin: 0 14px 20px;
+            }
+
+            .footer-inner {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .footer-brand {
+                flex-direction: column;
+                gap: 7px;
+            }
+        }
 
         :root {
 
@@ -556,6 +611,27 @@
             color: #6d8198;
 
             font-size: 7px;
+        }
+
+
+        .sidebar-logout {
+            width: 32px;
+            height: 32px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, .04);
+            color: #9eacbb;
+            font-size: 15px;
+            transition: var(--transition);
+        }
+
+        .sidebar-logout:hover {
+            background: rgba(220, 38, 38, .14);
+            border-color: rgba(248, 113, 113, .2);
+            color: #fca5a5;
         }
 
 
@@ -1913,21 +1989,46 @@
 
 
         {{-- USER --}}
+        <div class="sidebar-footer">
 
-       <footer class="app-footer">
-    <div class="footer-inner">
+            @auth
+                <div class="user-box">
 
-        <div class="footer-brand">
-            <strong>Personal System Faraja</strong>
-            <span>سیستم مدیریت پرسنل</span>
+                    <div class="user-avatar">
+                        {{ mb_substr(auth()->user()->name ?? 'م', 0, 1) }}
+                    </div>
+
+                    <div class="user-info">
+                        <div class="user-name">
+                            {{ auth()->user()->name ?? 'مدیر سیستم' }}
+                        </div>
+
+                        <div class="user-role">
+                            مدیر سامانه
+                        </div>
+                    </div>
+
+                    <form
+                        action="{{ route('logout') }}"
+                        method="POST"
+                        style="margin-right:auto;"
+                    >
+                        @csrf
+
+                        <button
+                            type="submit"
+                            class="sidebar-logout"
+                            title="خروج از حساب"
+                            aria-label="خروج از حساب"
+                        >
+                            ↪
+                        </button>
+                    </form>
+
+                </div>
+            @endif
+
         </div>
-
-        <div class="footer-copy">
-            © {{ now()->year }} Contact : Amirreza2178.
-        </div>
-
-    </div>
-</footer>
 
     </aside>
 
@@ -2046,6 +2147,46 @@
 
 
         </div>
+
+        {{-- APP FOOTER --}}
+        <footer class="app-footer">
+
+            <div class="footer-inner">
+
+                <div class="footer-brand">
+
+                    <div class="footer-logo">
+                        PF
+                    </div>
+
+                    <div class="footer-brand-text">
+                        <strong>Personal System Faraja</strong>
+                        <span>سامانه مدیریت اطلاعات و فرآیندهای پرسنلی</span>
+                    </div>
+
+                </div>
+
+                <div class="footer-contact">
+                    <span class="footer-contact-label">
+                        ارتباط با ما:
+                    </span>
+
+                    <a
+                        href="https://t.me/amirreza2178"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        @amirreza2178
+                    </a>
+                </div>
+
+                <div class="footer-copy">
+                    © {{ now()->year }} تمامی حقوق محفوظ است.
+                </div>
+
+            </div>
+
+        </footer>
 
     </main>
 

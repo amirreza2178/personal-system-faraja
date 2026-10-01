@@ -17,19 +17,24 @@ class AuthController extends Controller
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'username' => ['required', 'string'],
+            'username' => ['required', 'string', 'max:100'],
             'password' => ['required', 'string'],
         ], [
             'username.required' => 'نام کاربری الزامی است.',
+            'username.max' => 'نام کاربری نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد.',
             'password.required' => 'رمز عبور الزامی است.',
         ]);
 
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (! Auth::attempt([
+            'username' => $credentials['username'],
+            'password' => $credentials['password'],
+        ], $request->boolean('remember'))) {
+
             return back()
                 ->withErrors([
                     'username' => 'نام کاربری یا رمز عبور صحیح نیست.',
                 ])
-                ->onlyInput('username');
+                ->withInput($request->only('username'));
         }
 
         $request->session()->regenerate();
@@ -49,3 +54,9 @@ class AuthController extends Controller
             ->with('success', 'با موفقیت از حساب کاربری خارج شدید.');
     }
 }
+
+
+
+
+
+

@@ -10,9 +10,15 @@ use App\Models\LeaveBalance;
 use App\Models\LeaveRequest;
 use App\Enums\LeaveType;
 use App\Enums\LeaveStatus;
+use Illuminate\View\View;
 
 class EmployeeController extends Controller
 {
+
+    public function __construct(
+    private LeaveBalanceService $leaveBalanceService
+) {}
+
     /**
      * نمایش لیست پرسنل
      */
@@ -370,111 +376,206 @@ class EmployeeController extends Controller
  */
 
 
-
-public function show(Employee $employee)
+public function show(Employee $employee): View
 {
+    /*
+    |--------------------------------------------------------------------------
+    | اطلاعات اصلی پرسنل
+    |--------------------------------------------------------------------------
+    */
+
     $employee->load([
         'department',
     ]);
 
-    $year = now()->year;
-
-    $leaveBalances = LeaveBalance::query()
-        ->where('employee_id', $employee->id)
-        ->where('year', $year)
-        ->get();
-
-    $leaveBalance = [];
-
-    foreach (LeaveType::cases() as $type) {
-
-        $balance = $leaveBalances->first(
-            fn ($item) => $item->leave_type === $type
-        );
-
-        $allowance = $balance?->allowance ?? 0;
-
-        $used = LeaveRequest::query()
-            ->where('employee_id', $employee->id)
-            ->where('year', $year)
-            ->where('leave_type', $type)
-            ->approved()
-            ->sum('days');
-
-        $leaveBalance[$type->value] = [
-    'leave_type' => $type,
-    'allowance' => (int) $allowance,
-    'used' => (int) $used,
-    'remaining' => max(
-        0,
-        $allowance - $used
-    ),
-];
-    }
 
     /*
     |--------------------------------------------------------------------------
-    | Total Used Leave
+    | سال جاری شمسی
     |--------------------------------------------------------------------------
     */
 
-    $totalUsedLeave = LeaveRequest::query()
-        ->where('employee_id', $employee->id)
-        ->where('year', $year)
-        ->approved()
-        ->sum('days');
+    $year = $this->leaveBalanceService->currentJalaliYear();
+
 
     /*
     |--------------------------------------------------------------------------
-    | Leave Statistics
+    | سهمیه‌های مرخصی
     |--------------------------------------------------------------------------
+    |
+    | برای هر پرسنل:
+    | استحقاقی       30
+    | تشویقی         30
+    | استعلاجی       30
+    | مداومت         30
+    |
     */
 
-    $leaveStatistics = [
-        'total' => LeaveRequest::query()
-            ->where('employee_id', $employee->id)
-            ->where('year', $year)
-            ->count(),
+    $leaveBalances = $this->leaveBalanceService
+        ->getForEmployee($employee, $year);
 
-        'approved' => LeaveRequest::query()
-            ->where('employee_id', $employee->id)
-            ->where('year', $year)
-            ->approved()
-            ->count(),
-
-        'pending' => LeaveRequest::query()
-            ->where('employee_id', $employee->id)
-            ->where('year', $year)
-            ->pending()
-            ->count(),
-
-        'used_days' => (int) $totalUsedLeave,
-    ];
 
     /*
     |--------------------------------------------------------------------------
-    | Leave History
+    | تاریخچه کامل درخواست‌های مرخصی
     |--------------------------------------------------------------------------
     */
 
     $leaveHistory = LeaveRequest::query()
         ->where('employee_id', $employee->id)
-        ->where('year', $year)
-        ->latest('id')
+        ->latest('start_date')
         ->get();
 
-    return view(
-        'employees.show',
-        compact(
-            'employee',
-            'year',
-            'leaveBalance',
-            'totalUsedLeave',
-            'leaveStatistics',
-            'leaveHistory'
-        )
-    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | آمار مرخصی پرسنل
+    |--------------------------------------------------------------------------
+    */
+
+    $leaveStatistics = [
+        'total' => $leaveHistory->count(),
+
+        'used_days' => $leaveHistory
+            ->where('status', 'approved')
+            ->sum('days'),
+
+        'pending' => $leaveHistory
+            ->where('status', 'pending')
+            ->count(),
+
+        'approved' => $leaveHistory
+            ->where('status', 'approved')
+            ->count(),
+    ];
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | View
+    |--------------------------------------------------------------------------
+    */
+
+    return view('employees.show', [
+        'employee' => $employee,
+
+        'year' => $year,
+
+        'leaveBalances' => $leaveBalances,
+
+        'leaveHistory' => $leaveHistory,
+
+        'leaveRequests' => $leaveHistory,
+
+        'leaveStatistics' => $leaveStatistics,
+    ]);
 }
+
+
+// public function show(Employee $employee)
+// {
+//     $employee->load([
+//         'department',
+//     ]);
+
+//     $year = now()->year;
+
+//     $leaveBalances = LeaveBalance::query()
+//         ->where('employee_id', $employee->id)
+//         ->where('year', $year)
+//         ->get();
+
+//     $leaveBalance = [];
+
+//     foreach (LeaveType::cases() as $type) {
+
+//         $balance = $leaveBalances->first(
+//             fn ($item) => $item->leave_type === $type
+//         );
+
+//         $allowance = $balance?->allowance ?? 0;
+
+//         $used = LeaveRequest::query()
+//             ->where('employee_id', $employee->id)
+//             ->where('year', $year)
+//             ->where('leave_type', $type)
+//             ->approved()
+//             ->sum('days');
+
+//         $leaveBalance[$type->value] = [
+//     'leave_type' => $type,
+//     'allowance' => (int) $allowance,
+//     'used' => (int) $used,
+//     'remaining' => max(
+//         0,
+//         $allowance - $used
+//     ),
+// ];
+//     }
+
+//     /*
+//     |--------------------------------------------------------------------------
+//     | Total Used Leave
+//     |--------------------------------------------------------------------------
+//     */
+
+//     $totalUsedLeave = LeaveRequest::query()
+//         ->where('employee_id', $employee->id)
+//         ->where('year', $year)
+//         ->approved()
+//         ->sum('days');
+
+//     /*
+//     |--------------------------------------------------------------------------
+//     | Leave Statistics
+//     |--------------------------------------------------------------------------
+//     */
+
+//     $leaveStatistics = [
+//         'total' => LeaveRequest::query()
+//             ->where('employee_id', $employee->id)
+//             ->where('year', $year)
+//             ->count(),
+
+//         'approved' => LeaveRequest::query()
+//             ->where('employee_id', $employee->id)
+//             ->where('year', $year)
+//             ->approved()
+//             ->count(),
+
+//         'pending' => LeaveRequest::query()
+//             ->where('employee_id', $employee->id)
+//             ->where('year', $year)
+//             ->pending()
+//             ->count(),
+
+//         'used_days' => (int) $totalUsedLeave,
+//     ];
+
+//     /*
+//     |--------------------------------------------------------------------------
+//     | Leave History
+//     |--------------------------------------------------------------------------
+//     */
+
+//     $leaveHistory = LeaveRequest::query()
+//         ->where('employee_id', $employee->id)
+//         ->where('year', $year)
+//         ->latest('id')
+//         ->get();
+
+//     return view(
+//         'employees.show',
+//         compact(
+//             'employee',
+//             'year',
+//             'leaveBalance',
+//             'totalUsedLeave',
+//             'leaveStatistics',
+//             'leaveHistory'
+//         )
+//     );
+// }
 
 
 

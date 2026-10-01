@@ -274,27 +274,25 @@ class LeaveRequestController extends Controller
     /**
      * لغو
      */
-    public function cancel(
-        LeaveRequest $leaveRequest
-    ): RedirectResponse {
-        if ($leaveRequest->status !== 'pending') {
-            return redirect()
-                ->route('leave-requests.index')
-                ->with(
-                    'error',
-                    'فقط درخواست‌های در انتظار بررسی قابل لغو هستند.'
-                );
-        }
+public function cancel(LeaveRequest $leaveRequest): RedirectResponse
+{
+    $status = $leaveRequest->status instanceof \BackedEnum
+        ? (string) $leaveRequest->status->value
+        : (string) $leaveRequest->status;
 
-        $leaveRequest->update([
-            'status' => 'cancelled',
-        ]);
-
+    if ($status !== 'pending') {
         return redirect()
             ->route('leave-requests.index')
-            ->with(
-                'success',
-                'درخواست مرخصی با موفقیت لغو شد.'
-            );
+            ->with('error', 'فقط درخواست‌های در انتظار بررسی قابل لغو هستند.');
     }
+
+    $leaveRequest->update([
+        'status' => 'cancelled',
+    ]);
+
+    return redirect()
+        ->route('leave-requests.index')
+        ->with('success', 'درخواست مرخصی با موفقیت لغو شد.');
+}
+
 }

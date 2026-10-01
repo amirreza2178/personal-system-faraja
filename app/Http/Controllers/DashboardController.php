@@ -5,37 +5,22 @@ namespace App\Http\Controllers;
 use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\LeaveRequest;
+use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    /**
-     * نمایش داشبورد اصلی سیستم.
-     */
-    public function index()
+    public function index(): View
     {
-        $employeesCount = Employee::count();
+        return view('dashboard', [
+            'employeesCount' => Employee::query()->count(),
 
-        $attendancesCount = Attendance::count();
+            'attendancesCount' => Attendance::query()->count(),
 
-        $leaveRequestsCount = LeaveRequest::count();
+            'leaveRequestsCount' => LeaveRequest::query()->count(),
 
-        $pendingLeaveRequestsCount = LeaveRequest::pending()->count();
-
-        return view('dashboard', compact(
-            'employeesCount',
-            'attendancesCount',
-            'leaveRequestsCount',
-            'pendingLeaveRequestsCount'
-        ));
+            'pendingLeaveRequestsCount' => LeaveRequest::query()
+                ->where('status', 'pending')
+                ->count(),
+        ]);
     }
 }
-
-
-
-
-
-
-
-
-
-
